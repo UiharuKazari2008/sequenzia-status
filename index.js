@@ -94,8 +94,9 @@ function getDiskStatus() {
                 }
 
                 sendData(systemglobal.MQDiscordInbox, {
-                    fromClient : `return.DiskStatus.${systemglobal.system_name}`,
+                    fromClient : `return.DiskStatus.${systemglobal.SystemName}`,
                     messageChannelName: monDisk.channel,
+                    messageChannelID: "0",
                     messageReturn: false,
                     messageType: 'status',
                     messageText: messageText
