@@ -144,7 +144,7 @@ amqp.connect(MQServer, function(err, conn) {
             console.error("KanmiMQ - Channel Closed")
         });
         pubChannel = ch;
-        startMonitoring();
     });
+    startMonitoring();
 });
 
