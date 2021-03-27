@@ -101,7 +101,7 @@ function getDiskStatus() {
                     messageType: 'status',
                     messageText: messageText
                 }, (ok) => {
-                    if (!ok) { console.error('Failed to send update to MQ') } else { console.log(messageText) }
+                    if (!ok) { console.error('Failed to send update to MQ') }
                 })
             } else {
                 console.error(`Did not get disk information for ${monDisk.channel}`)
