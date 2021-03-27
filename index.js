@@ -54,11 +54,11 @@ function getDiskStatus() {
                     disk.check(monDisk.mount, function (err, info) {
                         //function toGB(x) { return (x / (1024 * 1024 * 1024)).toFixed(1); }
                         //diskUsed = ((info.total - info.free) / (1024 * 1024 * 1024)).toFixed(2);
-                        diskPercent = ((info.total - info.free) / info.total).toFixed(2);
+                        diskPercent = ((info.total - info.free) / info.total).toFixed(1);
                         if (monDisk.used) {
-                            diskValue = ((info.total - info.free) / (1024 * 1024)).toFixed(2);
+                            diskValue = ((info.total - info.free) / (1024 * 1024)).toFixed(8);
                         } else {
-                            diskValue = ((info.free) / (1024 * 1024)).toFixed(2)
+                            diskValue = ((info.free) / (1024 * 1024)).toFixed(8)
                         }
                         return resolve()
                     });
