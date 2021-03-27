@@ -1,0 +1,20 @@
+{
+  "SystemName": "",
+  "MQServer": "",
+  "MQUsername": "",
+  "MQPassword": "",
+  "MQDiscordInbox": "",
+  "diskRefreshInterval": 15,
+  "StatusDisks": [
+    {
+      "mount": "",
+      "channel": "",
+      "header": "",
+      "used": true,
+      "percentage": true,
+      "indicator": true,
+      "indicatorDang": 80,
+      "indicatorWarn": 60
+    }
+  ]
+}
