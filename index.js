@@ -70,11 +70,11 @@ function getDiskStatus() {
                 let _diskText = '';
                 let messageText = '';
                 if (diskValue >= 1000000) {
-                    _diskText = `${(diskValue / (1024 * 1024)).toFixed(2)} TB`
+                    _diskText = `${(diskValue / (1024 * 1024)).toFixed(monDisk.precision)} TB`
                 } else if (diskValue >= 1000 ) {
-                    _diskText = `${(diskValue / 1024).toFixed(2)} GB`
+                    _diskText = `${(diskValue / 1024).toFixed(monDisk.precision)} GB`
                 } else {
-                    _diskText = `${diskValue} MB`
+                    _diskText = `${diskValue.toFixed(monDisk.precision)} MB`
                 }
                 if (monDisk.indicator) {
                     if (diskPercent >= monDisk.indicatorDang) {

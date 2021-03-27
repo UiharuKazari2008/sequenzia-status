@@ -11,6 +11,7 @@
       "channel": "",
       "header": "",
       "used": true,
+      "precision": 2,
       "percentage": true,
       "indicator": true,
       "indicatorDang": 80,
