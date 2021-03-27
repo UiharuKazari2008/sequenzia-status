@@ -135,7 +135,6 @@ amqp.connect(MQServer, function(err, conn) {
     });
     console.error(`KanmiMQ - Publisher Connected to Kanmi Exchange as ${systemglobal.SystemName}!`)
     amqpConn = conn;
-    startMonitoring();
     amqpConn.createConfirmChannel(function(err, ch) {
         if (closeOnErr(err)) return;
         ch.on("error", function(err) {
@@ -145,6 +144,7 @@ amqp.connect(MQServer, function(err, conn) {
             console.error("KanmiMQ - Channel Closed")
         });
         pubChannel = ch;
+        startMonitoring();
     });
 });
 
