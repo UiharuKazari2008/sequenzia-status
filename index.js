@@ -54,7 +54,7 @@ function getDiskStatus() {
                     disk.check(monDisk.mount, function (err, info) {
                         //function toGB(x) { return (x / (1024 * 1024 * 1024)).toFixed(1); }
                         //diskUsed = ((info.total - info.free) / (1024 * 1024 * 1024)).toFixed(2);
-                        diskPercent = ((info.total - info.free) / info.total).toFixed(1);
+                        diskPercent = (((info.total - info.free) / info.total) * 100);
                         if (monDisk.used) {
                             diskValue = ((info.total - info.free) / (1024 * 1024)).toFixed(8);
                         } else {
@@ -90,7 +90,7 @@ function getDiskStatus() {
                 }
                 messageText += _diskText
                 if (monDisk.percentage) {
-                    messageText += ` (${diskPercent}%)`
+                    messageText += ` (${diskPercent.toFixed(1)}%)`
                 }
 
                 sendData(systemglobal.MQDiscordInbox, {
