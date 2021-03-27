@@ -88,7 +88,7 @@ function getDiskStatus() {
                 if (monDisk.header && monDisk.header.length > 0) {
                     messageText += `${monDisk.header} `
                 }
-                messageText += `${diskValue} `
+                messageText += _diskText
                 if (monDisk.percentage) {
                     messageText += ` (${diskPercent}%)`
                 }
