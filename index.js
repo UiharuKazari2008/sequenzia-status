@@ -22,6 +22,7 @@ function publish(exchange, routingKey, content, callback) {
             });
     } catch (e) {
         console.error("KanmiMQ - Publish Error")
+        console.error(e)
         callback(false)
     }
 }
