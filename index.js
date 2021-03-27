@@ -76,6 +76,9 @@ function getDiskStatus() {
                 } else {
                     _diskText = `${diskValue.toFixed(monDisk.precision)} MB`
                 }
+                if (monDisk.header && monDisk.header.length > 0) {
+                    messageText += `${monDisk.header} `
+                }
                 if (monDisk.indicator) {
                     if (diskPercent >= monDisk.indicatorDang) {
                         messageText += '🔴 '
@@ -85,12 +88,9 @@ function getDiskStatus() {
                         messageText += '🟢 '
                     }
                 }
-                if (monDisk.header && monDisk.header.length > 0) {
-                    messageText += `${monDisk.header} `
-                }
                 messageText += _diskText
                 if (monDisk.percentage) {
-                    messageText += ` (${diskPercent.toFixed(1)}%)`
+                    messageText += ` (${diskPercent.toFixed(0)}%)`
                 }
 
                 sendData(systemglobal.MQDiscordInbox, {
