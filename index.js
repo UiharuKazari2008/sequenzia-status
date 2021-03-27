@@ -148,4 +148,9 @@ amqp.connect(MQServer, function(err, conn) {
     });
     startMonitoring();
 });
-
+process.on('uncaughtException', function(err) {
+    console.log(err)
+    setTimeout(function() {
+        process.exit(1)
+    }, 3000)
+});
