@@ -195,6 +195,7 @@ function getDiskStatus() {
 function startMonitoring() {
     getCalenders();
     setTimeout(getDiskStatus, 5000);
+    setTimeout(getCalenders, 5000);
     setInterval(getDiskStatus, (systemglobal.diskRefreshInterval * 60000))
 }
 
