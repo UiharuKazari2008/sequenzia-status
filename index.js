@@ -193,10 +193,10 @@ function getDiskStatus() {
     })
 }
 function startMonitoring() {
-    getCalenders();
     setTimeout(getDiskStatus, 5000);
     setTimeout(getCalenders, 5000);
     setInterval(getDiskStatus, (systemglobal.diskRefreshInterval * 60000))
+    setInterval(getCalenders, (systemglobal.diskRefreshInterval * 60000))
 }
 
 amqp.connect(MQServer, function(err, conn) {
