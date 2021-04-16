@@ -140,9 +140,9 @@ function getCalenderEvent(data, calender){
             })
         }
         if (eventData.now === 2) {
-            messageText += '🔴'
+            messageText += '🔴 '
         } else if (eventData.now === 1) {
-            messageText += '🔶'
+            messageText += '🔶 '
         }
         messageText += `${eventData.time}:${eventName}`
     } else {
@@ -202,11 +202,11 @@ function getDiskStatus() {
                 }
                 if (monDisk.indicator) {
                     if (diskPercent >= monDisk.indicatorDang) {
-                        messageText += '❌'
+                        messageText += '❌ '
                     } else if (diskPercent >= monDisk.indicatorWarn) {
-                        messageText += '⚠️'
+                        messageText += '⚠️ '
                     } else {
-                        messageText += '✅'
+                        messageText += '✅ '
                     }
                 }
                 messageText += _diskText
