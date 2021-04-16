@@ -236,9 +236,7 @@ function startMonitoring() {
     setTimeout(getDiskStatus, 5000);
     setTimeout(getCalenders, 5000);
     setInterval(getDiskStatus, (systemglobal.diskRefreshInterval * 60000));
-    cron.schedule('1,6,31,36 * * * *', () => {
-        getCalenders();
-    });
+    cron.schedule('1,6,31,36 * * * *', getCalenders);
 }
 
 amqp.connect(MQServer, function(err, conn) {
