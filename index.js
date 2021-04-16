@@ -3,6 +3,9 @@ const systemglobal = require('./config.json');
 const os = require('os');
 const disk = require('diskusage');
 const amqp = require('amqplib/callback_api');
+const calExpander = require('ical-expander');
+const moment = require('moment');
+const https = require('https');
 const MQServer = `amqp://${systemglobal.MQUsername}:${systemglobal.MQPassword}@${systemglobal.MQServer}/?heartbeat=60`
 let amqpConn = null;
 let pubChannel = null;
@@ -41,6 +44,84 @@ function closeOnErr(err) {
     console.error("KanmiMQ - Connection Closed due to error")
     amqpConn.close();
     return true;
+}
+
+function getCalenders() {
+    systemglobal.CalenderEvents.forEach((calender) => {
+        if (calender.url) {
+            https.get(calender.url.replace('webcal://', 'https://'), (resp) => {
+                resp.setEncoding('utf8');
+                let data = '';
+                resp.on('data', (chunk) => { data += chunk; });
+                resp.on('end', () => { getCalenderEvent(data, calender) });
+
+            }).on('error', (err) => {
+                if (err) { console.error('Failed to get calender from URL') }
+            });
+        }
+    })
+}
+function getCalenderEvent(data, calender){
+    const ical = new calExpander({
+        ics: data,
+        maxIterations: 1000
+    });
+    const now = new Date();
+    const start = new Date(now.getTime());
+    const end = new Date(now.getTime() + 3600 * 1000); // 30 Min Ahead
+    const cal = ical.between(start, end);
+
+    let foundEvents = new Map();
+    Object.values(cal).forEach(function(cal_type){
+        cal_type.forEach(function(events){ // Process Single and Reoccurring Events
+            let event = {};
+            let date = 0;
+            events.item.component.jCal[1].forEach(function (elements){ // Dig to the shit we actually want (fuck jcal)
+                if (elements[0] === 'dtstart') {
+                    const index = elements.indexOf('date-time') + 1
+                    date = new Date(elements[index])
+                    event.time = moment(date).format('HH:mm')
+                }
+                if (elements[0] === 'summary') { // Bruteforce our way to the fucking summary element sense its not predictable
+                    event.name = elements[3]
+                }
+            })
+            foundEvents.set(date.toISOString(), event);
+        })
+    })
+
+    // Prints Current Airing Event
+    const keys = Array.from(foundEvents.keys()).sort();
+    let messageText = ''
+    if (calender.header) {
+        messageText += calender.header + ' ';
+    }
+    if (keys.length > 0) {
+        const eventData = foundEvents.get(keys[0])
+        let eventName = eventData.name
+        if (calender.replacements && calender.replacements.length > 0) {
+            calender.replacements.forEach(rep => {
+                eventName = eventName.replace(rep.from, rep.to);
+            })
+        }
+        messageText += `${eventData.time}: ${eventName}`
+    } else {
+        if (calender.noEvents) {
+            messageText += calender.noEvents
+        } else {
+            messageText += `No Events`
+        }
+    }
+    sendData(systemglobal.MQDiscordInbox, {
+        fromClient : `return.Calender.${systemglobal.SystemName}`,
+        messageChannelName: calender.channel,
+        messageChannelID: "0",
+        messageReturn: false,
+        messageType: 'status',
+        messageText: messageText
+    }, (ok) => {
+        if (!ok) { console.error('Failed to send update to MQ') }
+    })
 }
 
 function getDiskStatus() {
@@ -112,6 +193,7 @@ function getDiskStatus() {
     })
 }
 function startMonitoring() {
+    getCalenders();
     setTimeout(getDiskStatus, 5000);
     setInterval(getDiskStatus, (systemglobal.diskRefreshInterval * 60000))
 }
