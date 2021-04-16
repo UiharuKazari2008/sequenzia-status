@@ -143,8 +143,6 @@ function getCalenderEvent(data, calender){
             messageText += '🔴'
         } else if (eventData.now === 1) {
             messageText += '🔶'
-        } else {
-            messageText += '⚪'
         }
         messageText += `${eventData.time}:${eventName}`
     } else {
