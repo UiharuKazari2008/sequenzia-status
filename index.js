@@ -6,9 +6,12 @@ const amqp = require('amqplib/callback_api');
 const calExpander = require('ical-expander');
 const moment = require('moment');
 const https = require('https');
+const cron = require('node-cron');
 const MQServer = `amqp://${systemglobal.MQUsername}:${systemglobal.MQPassword}@${systemglobal.MQServer}/?heartbeat=60`
 let amqpConn = null;
 let pubChannel = null;
+const daysOfWeek = ['SU','MO','TU','WE','TH','FR', 'SA']
+
 
 
 function publish(exchange, routingKey, content, callback) {
@@ -68,7 +71,7 @@ function getCalenderEvent(data, calender){
     });
     const now = new Date();
     const start = new Date(now.getTime());
-    const end = new Date(now.getTime() + 3600 * 1000); // 30 Min Ahead
+    const end = new Date(now.getTime() + 48 * 3600 * 1000); // 30 Min Ahead
     const cal = ical.between(start, end);
 
     let foundEvents = new Map();
@@ -76,17 +79,49 @@ function getCalenderEvent(data, calender){
         cal_type.forEach(function(events){ // Process Single and Reoccurring Events
             let event = {};
             let date = 0;
-            events.item.component.jCal[1].forEach(function (elements){ // Dig to the shit we actually want (fuck jcal)
-                if (elements[0] === 'dtstart') {
-                    const index = elements.indexOf('date-time') + 1
-                    date = new Date(elements[index])
-                    event.time = moment(date).format('HH:mm')
+            let element = undefined
+            if (events.item) {
+                element = events.item
+            } else {
+                element = events
+            }
+            const reoccurrence = element.component.jCal[1].filter(e => { return e[0] === 'rrule' }).map(e => { if (e.indexOf('recur') !== -1) { return e[e.indexOf('recur') + 1] } })
+            const eventName = element.component.jCal[1].filter(e => { return e[0] === 'summary' }).map(e => { if (e.indexOf('text') !== -1) { return e[e.indexOf('text') + 1] } })
+            const eventStart = element.component.jCal[1].filter(e => { return e[0] === 'dtstart' }).map(e => { if (e.indexOf('date-time') !== -1) { return e[e.indexOf('date-time') + 1] } })
+            if (eventName.length > 0) {
+                event.name = eventName[0]
+            }
+            const _eventTime = moment(new Date(eventStart[0]));
+            if (reoccurrence.length > 0 && reoccurrence[0].freq === 'WEEKLY') {
+                let eventTime = undefined;
+                if (reoccurrence[0].byday) {
+                    let _weekStart = moment().startOf('week').add(daysOfWeek.indexOf(reoccurrence[0].byday), 'days');
+                    if (_weekStart.day() < moment().day()) {
+                        _weekStart = moment().startOf('week').add(daysOfWeek.indexOf(reoccurrence[0].byday) + 7, 'days');
+                    }
+                    eventTime = _weekStart.hour(_eventTime.format('HH')).minute(_eventTime.format('mm'));
+                } else {
+                    const _dayOfWeek = _eventTime.day();
+                    _weekStart = moment().startOf('week').add(_dayOfWeek, 'days');
+                    if (_weekStart.day() < moment().day()) {
+                        _weekStart = moment().startOf('week').add(_dayOfWeek + 7, 'days');
+                    }
+                    eventTime = _weekStart.hour(_eventTime.format('HH')).minute(_eventTime.format('mm'));
                 }
-                if (elements[0] === 'summary') { // Bruteforce our way to the fucking summary element sense its not predictable
-                    event.name = elements[3]
-                }
-            })
-            foundEvents.set(date.toISOString(), event);
+                event.time = eventTime.format('HH:mm');
+                date = eventTime.valueOf();
+            } else {
+                event.time = _eventTime.format('HH:mm');
+                date = _eventTime.valueOf();
+            }
+            if (date <= Date.now()) {
+                event.now = 2
+            } else if (date <= moment().add(1, 'hours').valueOf()) {
+                event.now = 1
+            } else {
+                event.now = 0
+            }
+            foundEvents.set(date, event);
         })
     })
 
@@ -104,7 +139,14 @@ function getCalenderEvent(data, calender){
                 eventName = eventName.replace(rep.from, rep.to);
             })
         }
-        messageText += `${eventData.time}: ${eventName}`
+        if (eventData.now === 2) {
+            messageText += '🔴'
+        } else if (eventData.now === 1) {
+            messageText += '🔶'
+        } else {
+            messageText += '⚪'
+        }
+        messageText += `${eventData.time}:${eventName}`
     } else {
         if (calender.noEvents) {
             messageText += calender.noEvents
@@ -162,11 +204,11 @@ function getDiskStatus() {
                 }
                 if (monDisk.indicator) {
                     if (diskPercent >= monDisk.indicatorDang) {
-                        messageText += '🔴 '
+                        messageText += '❌'
                     } else if (diskPercent >= monDisk.indicatorWarn) {
-                        messageText += '🟡 '
+                        messageText += '⚠️'
                     } else {
-                        messageText += '🟢 '
+                        messageText += '✅'
                     }
                 }
                 messageText += _diskText
@@ -195,8 +237,8 @@ function getDiskStatus() {
 function startMonitoring() {
     setTimeout(getDiskStatus, 5000);
     setTimeout(getCalenders, 5000);
-    setInterval(getDiskStatus, (systemglobal.diskRefreshInterval * 60000))
-    setInterval(getCalenders, (systemglobal.diskRefreshInterval * 60000))
+    setInterval(getDiskStatus, (systemglobal.diskRefreshInterval * 60000));
+    cron.schedule('1, 6, 31, 36 * * * *', getCalenders);
 }
 
 amqp.connect(MQServer, function(err, conn) {
