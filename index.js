@@ -50,19 +50,27 @@ function closeOnErr(err) {
 }
 
 function getCalenders() {
-    systemglobal.CalenderEvents.forEach((calender) => {
-        if (calender.url) {
-            https.get(calender.url.replace('webcal://', 'https://'), (resp) => {
-                resp.setEncoding('utf8');
-                let data = '';
-                resp.on('data', (chunk) => { data += chunk; });
-                resp.on('end', () => { getCalenderEvent(data, calender) });
+    if (systemglobal.CalenderEvents) {
+        systemglobal.CalenderEvents.forEach((calender) => {
+            if (calender.url) {
+                https.get(calender.url.replace('webcal://', 'https://'), (resp) => {
+                    resp.setEncoding('utf8');
+                    let data = '';
+                    resp.on('data', (chunk) => {
+                        data += chunk;
+                    });
+                    resp.on('end', () => {
+                        getCalenderEvent(data, calender)
+                    });
 
-            }).on('error', (err) => {
-                if (err) { console.error('Failed to get calender from URL') }
-            });
-        }
-    })
+                }).on('error', (err) => {
+                    if (err) {
+                        console.error('Failed to get calender from URL')
+                    }
+                });
+            }
+        })
+    }
 }
 function getCalenderEvent(data, calender){
     const ical = new calExpander({
@@ -165,72 +173,80 @@ function getCalenderEvent(data, calender){
 }
 
 function getDiskStatus() {
-    systemglobal.StatusDisks.forEach((monDisk) => {
-        if (monDisk.channel) {
-            let diskValue = null;
-            let diskPercent = null;
+    if (systemglobal.StatusDisks) {
+        systemglobal.StatusDisks.forEach((monDisk) => {
+            if (monDisk.channel) {
+                let diskValue = null;
+                let diskPercent = null;
 
-            new Promise(function(resolve, reject){
-                try {
-                    disk.check(monDisk.mount, function (err, info) {
-                        //function toGB(x) { return (x / (1024 * 1024 * 1024)).toFixed(1); }
-                        //diskUsed = ((info.total - info.free) / (1024 * 1024 * 1024)).toFixed(2);
-                        diskPercent = (((info.total - info.free) / info.total) * 100);
-                        if (monDisk.used) {
-                            diskValue = ((info.total - info.free) / (1024 * 1024)).toFixed(8);
-                        } else {
-                            diskValue = ((info.free) / (1024 * 1024)).toFixed(8)
-                        }
-                        return resolve()
-                    });
-                } catch (e) { return reject(e); }
-                setTimeout(function(){reject('timeout')},2000)
-            })
-
-            if (diskValue && diskPercent) {
-                let _diskText = '';
-                let messageText = '';
-                if (diskValue >= 1000000) {
-                    _diskText = `${(diskValue / (1024 * 1024)).toFixed(monDisk.precision)} TB`
-                } else if (diskValue >= 1000 ) {
-                    _diskText = `${(diskValue / 1024).toFixed(monDisk.precision)} GB`
-                } else {
-                    _diskText = `${diskValue.toFixed(monDisk.precision)} MB`
-                }
-                if (monDisk.header && monDisk.header.length > 0) {
-                    messageText += `${monDisk.header} `
-                }
-                if (monDisk.indicator) {
-                    if (diskPercent >= monDisk.indicatorDang) {
-                        messageText += '❌ '
-                    } else if (diskPercent >= monDisk.indicatorWarn) {
-                        messageText += '⚠️ '
-                    } else {
-                        messageText += '✅ '
+                new Promise(function (resolve, reject) {
+                    try {
+                        disk.check(monDisk.mount, function (err, info) {
+                            //function toGB(x) { return (x / (1024 * 1024 * 1024)).toFixed(1); }
+                            //diskUsed = ((info.total - info.free) / (1024 * 1024 * 1024)).toFixed(2);
+                            diskPercent = (((info.total - info.free) / info.total) * 100);
+                            if (monDisk.used) {
+                                diskValue = ((info.total - info.free) / (1024 * 1024)).toFixed(8);
+                            } else {
+                                diskValue = ((info.free) / (1024 * 1024)).toFixed(8)
+                            }
+                            return resolve()
+                        });
+                    } catch (e) {
+                        return reject(e);
                     }
-                }
-                messageText += _diskText
-                if (monDisk.percentage) {
-                    messageText += ` (${diskPercent.toFixed(0)}%)`
-                }
-
-                sendData(systemglobal.MQDiscordInbox, {
-                    fromClient : `return.DiskStatus.${systemglobal.SystemName}`,
-                    messageChannelName: monDisk.channel,
-                    messageChannelID: "0",
-                    messageReturn: false,
-                    messageType: 'status',
-                    messageText: messageText
-                }, (ok) => {
-                    if (!ok) { console.error('Failed to send update to MQ') }
+                    setTimeout(function () {
+                        reject('timeout')
+                    }, 2000)
                 })
+
+                if (diskValue && diskPercent) {
+                    let _diskText = '';
+                    let messageText = '';
+                    if (diskValue >= 1000000) {
+                        _diskText = `${(diskValue / (1024 * 1024)).toFixed(monDisk.precision)} TB`
+                    } else if (diskValue >= 1000) {
+                        _diskText = `${(diskValue / 1024).toFixed(monDisk.precision)} GB`
+                    } else {
+                        _diskText = `${diskValue.toFixed(monDisk.precision)} MB`
+                    }
+                    if (monDisk.header && monDisk.header.length > 0) {
+                        messageText += `${monDisk.header} `
+                    }
+                    if (monDisk.indicator) {
+                        if (diskPercent >= monDisk.indicatorDang) {
+                            messageText += '❌ '
+                        } else if (diskPercent >= monDisk.indicatorWarn) {
+                            messageText += '⚠️ '
+                        } else {
+                            messageText += '✅ '
+                        }
+                    }
+                    messageText += _diskText
+                    if (monDisk.percentage) {
+                        messageText += ` (${diskPercent.toFixed(0)}%)`
+                    }
+
+                    sendData(systemglobal.MQDiscordInbox, {
+                        fromClient: `return.DiskStatus.${systemglobal.SystemName}`,
+                        messageChannelName: monDisk.channel,
+                        messageChannelID: "0",
+                        messageReturn: false,
+                        messageType: 'status',
+                        messageText: messageText
+                    }, (ok) => {
+                        if (!ok) {
+                            console.error('Failed to send update to MQ')
+                        }
+                    })
+                } else {
+                    console.error(`Did not get disk information for ${monDisk.channel}`)
+                }
             } else {
-                console.error(`Did not get disk information for ${monDisk.channel}`)
+                console.error('Disk Misconfiguration - No channel name')
             }
-        } else {
-            console.error('Disk Misconfiguration - No channel name')
-        }
-    })
+        })
+    }
 }
 function startMonitoring() {
     setTimeout(getDiskStatus, 5000);
