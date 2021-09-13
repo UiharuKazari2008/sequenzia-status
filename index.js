@@ -178,6 +178,9 @@ function getDiskStatus() {
             if (monDisk.channel) {
                 let diskValue = null;
                 let diskPercent = null;
+                let diskUsed = null;
+                let diskFree = null;
+                let diskTotal = null;
 
                 new Promise(function (resolve, reject) {
                     try {
@@ -185,10 +188,13 @@ function getDiskStatus() {
                             //function toGB(x) { return (x / (1024 * 1024 * 1024)).toFixed(1); }
                             //diskUsed = ((info.total - info.free) / (1024 * 1024 * 1024)).toFixed(2);
                             diskPercent = (((info.total - info.free) / info.total) * 100);
+                            diskUsed = ((info.total - info.free) / (1024 * 1024)).toFixed(8);
+                            diskFree = ((info.free) / (1024 * 1024)).toFixed(8);
+                            diskTotal = ((info.total) / (1024 * 1024)).toFixed(8);
                             if (monDisk.used) {
-                                diskValue = ((info.total - info.free) / (1024 * 1024)).toFixed(8);
+                                diskValue = diskUsed;
                             } else {
-                                diskValue = ((info.free) / (1024 * 1024)).toFixed(8)
+                                diskValue = diskFree;
                             }
                             return resolve()
                         });
@@ -203,6 +209,7 @@ function getDiskStatus() {
                 if (diskValue && diskPercent) {
                     let _diskText = '';
                     let messageText = '';
+                    let messageIcon = '';
                     if (diskValue >= 1000000) {
                         _diskText = `${(diskValue / (1024 * 1024)).toFixed(monDisk.precision)} TB`
                     } else if (diskValue >= 1000) {
@@ -215,12 +222,13 @@ function getDiskStatus() {
                     }
                     if (monDisk.indicator) {
                         if (diskPercent >= monDisk.indicatorDang) {
-                            messageText += '❌ '
+                            messageIcon += '❌'
                         } else if (diskPercent >= monDisk.indicatorWarn) {
-                            messageText += '⚠️ '
+                            messageIcon += '⚠️'
                         } else {
-                            messageText += '✅ '
+                            messageIcon += '✅'
                         }
+                        messageText += messageIcon = ''
                     }
                     messageText += _diskText
                     if (monDisk.percentage) {
@@ -233,7 +241,17 @@ function getDiskStatus() {
                         messageChannelID: "0",
                         messageReturn: false,
                         messageType: 'status',
-                        messageText: messageText
+                        messageData: {
+                            diskName: monDisk.name,
+                            diskMount: monDisk.mount,
+                            diskTotal: diskTotal,
+                            diskUsed: diskUsed,
+                            diskFree: diskFree,
+                            diskPercent: diskPercent.toFixed(0),
+                            statusText: messageText,
+                            statusIcon: messageIcon
+                        },
+                        updateIndicators: true
                     }, (ok) => {
                         if (!ok) {
                             console.error('Failed to send update to MQ')
