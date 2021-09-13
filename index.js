@@ -210,6 +210,7 @@ function getDiskStatus() {
                     let _diskText;
                     let messageText = '';
                     let messageIcon;
+                    let diskFault = false;
                     if (diskValue >= 1000000) {
                         _diskText = `${(diskValue / (1024 * 1024)).toFixed(monDisk.precision)} TB`
                     } else if (diskValue >= 1000) {
@@ -223,6 +224,7 @@ function getDiskStatus() {
 
                     if (diskPercent >= monDisk.indicatorDang) {
                         messageIcon = '❌'
+                        diskFault = true
                     } else if (diskPercent >= monDisk.indicatorWarn) {
                         messageIcon = '⚠️'
                     } else {
@@ -249,6 +251,7 @@ function getDiskStatus() {
                             diskUsed: diskUsed,
                             diskFree: diskFree,
                             diskPercent: diskPercent.toFixed(0),
+                            diskFault: diskFault,
                             statusText: messageText,
                             statusIcon: messageIcon
                         },
