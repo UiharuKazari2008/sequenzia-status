@@ -246,12 +246,14 @@ function getDiskStatus() {
                         messageType: 'status',
                         messageData: {
                             diskName: monDisk.name,
+                            diskIcon: monDisk.header,
                             diskMount: monDisk.mount,
                             diskTotal: diskTotal,
                             diskUsed: diskUsed,
                             diskFree: diskFree,
                             diskPercent: diskPercent.toFixed(0),
                             diskFault: diskFault,
+                            preferUsed: monDisk.used,
                             statusText: messageText,
                             statusIcon: messageIcon
                         },
