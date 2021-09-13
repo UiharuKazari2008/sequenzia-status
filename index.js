@@ -220,14 +220,15 @@ function getDiskStatus() {
                     if (monDisk.header && monDisk.header.length > 0) {
                         messageText += `${monDisk.header} `
                     }
+
+                    if (diskPercent >= monDisk.indicatorDang) {
+                        messageIcon += '❌'
+                    } else if (diskPercent >= monDisk.indicatorWarn) {
+                        messageIcon += '⚠️'
+                    } else {
+                        messageIcon += '✅'
+                    }
                     if (monDisk.indicator) {
-                        if (diskPercent >= monDisk.indicatorDang) {
-                            messageIcon += '❌'
-                        } else if (diskPercent >= monDisk.indicatorWarn) {
-                            messageIcon += '⚠️'
-                        } else {
-                            messageIcon += '✅'
-                        }
                         messageText += messageIcon = ''
                     }
                     messageText += _diskText
