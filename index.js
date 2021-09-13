@@ -229,7 +229,7 @@ function getDiskStatus() {
                         messageIcon = '✅'
                     }
                     if (monDisk.indicator) {
-                        messageText += messageIcon = ' '
+                        messageText += messageIcon + ' '
                     }
                     messageText += _diskText
                     if (monDisk.percentage) {
