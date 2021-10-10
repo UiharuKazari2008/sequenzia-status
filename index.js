@@ -255,7 +255,8 @@ function getDiskStatus() {
                             diskFault: diskFault,
                             preferUsed: monDisk.used,
                             statusText: messageText,
-                            statusIcon: messageIcon
+                            statusIcon: messageIcon,
+                            timestamp: new Date().valueOf()
                         },
                         updateIndicators: true
                     }, (ok) => {
