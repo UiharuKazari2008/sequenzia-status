@@ -174,7 +174,7 @@ function getCalenderEvent(data, calender){
 
 function getDiskStatus() {
     if (systemglobal.StatusDisks) {
-        systemglobal.StatusDisks.forEach((monDisk) => {
+        systemglobal.StatusDisks.forEach(async (monDisk) => {
             if (monDisk.channel) {
                 let diskValue = null;
                 let diskPercent = null;
@@ -182,7 +182,7 @@ function getDiskStatus() {
                 let diskFree = null;
                 let diskTotal = null;
 
-                new Promise(function (resolve, reject) {
+                await new Promise(function (resolve, reject) {
                     try {
                         disk.check(monDisk.mount, function (err, info) {
                             //function toGB(x) { return (x / (1024 * 1024 * 1024)).toFixed(1); }
@@ -198,8 +198,6 @@ function getDiskStatus() {
                             }
                             if (err) {
                                 console.error(err);
-                            } else {
-                                console.log(info)
                             }
                             return resolve()
                         });
