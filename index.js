@@ -199,6 +199,7 @@ function getDiskStatus() {
                             return resolve()
                         });
                     } catch (e) {
+                        console.error(e);
                         return reject(e);
                     }
                     setTimeout(function () {
