@@ -198,6 +198,8 @@ function getDiskStatus() {
                             }
                             if (err) {
                                 console.error(err);
+                            } else {
+                                console.log(info)
                             }
                             return resolve()
                         });
