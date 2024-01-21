@@ -196,6 +196,9 @@ function getDiskStatus() {
                             } else {
                                 diskValue = diskFree;
                             }
+                            if (err) {
+                                console.error(err);
+                            }
                             return resolve()
                         });
                     } catch (e) {
@@ -203,7 +206,7 @@ function getDiskStatus() {
                         return reject(e);
                     }
                     setTimeout(function () {
-                        reject('timeout')
+                        reject('timeout');
                     }, 2000)
                 })
 
